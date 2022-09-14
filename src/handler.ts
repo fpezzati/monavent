@@ -3,21 +3,27 @@ interface Message {
   payload: Object;
 }
 
-interface Handler {
+interface Handler<S> {
   token: string;
-  accept: (msg: Message) => Handler;
+  state: S;
+  accept: (msg: Message, state?: S) => Handler<S>;
 }
 
-class MainHandler implements Handler {
+class MainHandler<S> implements Handler<S> {
   token: string;
-  handlers: Map<string, Handler>;
+  state: S;
+  handlers: Map<string, Handler<S>>;
 
-  constructor() {
+  constructor(state: S) {
     this.token = "mainhandler";
-    this.handlers = new Map<string, Handler>();
+    this.state = state;
+    this.handlers = new Map<string, Handler<S>>();
   }
 
-  accept(msg: Message) {
+  accept(msg: Message, state?: S): Handler<S> {
+    if(this.handlers.get(msg.token)) {
+      this.state = this.handlers.get(msg.token)!.accept(msg, state ? state : this.state).state;
+    }
     return this;
   }
 }
