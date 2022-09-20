@@ -1,6 +1,6 @@
 interface Message {
   token: string;
-  payload: Object;
+  payload: {};
 }
 
 interface Handler<S> {

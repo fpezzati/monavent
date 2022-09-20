@@ -27,25 +27,6 @@ tape('MainHandler is a monad', (t) => {
   t.end();
 });
 
-tape('Properly configured MainHandler can perform ctrl-z and get state back in time', (t) => {
-  let state : State = {
-    sum: 0
-  }
-  let mh = new MainHandler(state);
-  let msg: Message = {
-    token: "add",
-    payload: {}
-  };
-  let ctrlz: Message = {
-    token: "ctrl-z",
-    payload: {}
-  };
-  mh.handlers.set("add", getAddToStateHandler());
-  mh.accept(msg).accept(msg).accept(msg).accept(ctrlz).accept(ctrlz);
-  t.ok(mh.state.sum === 1);
-  t.end();
-});
-
 function getAddToStateHandler(): Handler<State> {
   return {
     accept(msg: Message, state: State) {
