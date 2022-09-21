@@ -58,7 +58,7 @@ tape('Ctrlz update state while he makes room for new events', (t) => {
   let ctrlz = new Ctrlz<number>(tobedecorated);
   ctrlz.queuesize = 5;
   ctrlz.accept(msg, 0).accept(msg).accept(msg).accept(msg).accept(msg).accept(msg);
-  t.ok(ctrlz.state === 1, "Ctrlz state should be 1 but it was " + ctrlz.state);
+  t.ok(ctrlz.state === 1, "Ctrlz state should be 1, it is " + ctrlz.state);
   t.end();
 });
 
@@ -70,7 +70,7 @@ tape('Ctrlz does not affect how decorated handler works', (t) => {
   let tobedecorated : Handler<number> = getIncrementHandler();
   let ctrlz = new Ctrlz<number>(tobedecorated);
   ctrlz.accept(msg, 0).accept(msg);
-  t.ok(ctrlz.decorated.state === 2, "Ctrlz's decorated state should be 2 but it was " + ctrlz.decorated.state);
+  t.ok(ctrlz.decorated.state === 2, "Ctrlz's decorated state should be 2, it is " + ctrlz.decorated.state);
   t.end();
 });
 
@@ -87,7 +87,7 @@ tape('Properly configured handler can perform ctrl-z and get state back in time'
   mh.handlers.set("add", getIncrementHandler());
   let ctrlzHandler = new Ctrlz(mh);
   ctrlzHandler.accept(msg).accept(msg).accept(msg).accept(ctrlz).accept(ctrlz);
-  t.ok(ctrlzHandler.decorated.state === 1, "state should be 1, instead is " + ctrlzHandler.decorated.state);
+  t.ok(ctrlzHandler.decorated.state === 1, "state should be 1, should be " + ctrlzHandler.decorated.state);
   t.end();
 });
 
