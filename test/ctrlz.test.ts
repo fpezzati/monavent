@@ -4,32 +4,32 @@ import { Ctrlz } from "../src/ctrlz";
 import { Message, Handler, MainHandler } from "../src/handler";
 
 tape('Ctrlz expects an handler to decorate', (t) => {
-  let tobedecorated : Handler<number> = getIncrementHandler();
+  let tobedecorated : Handler<number, number> = getIncrementHandler();
   let ctrlz = new Ctrlz<number>(tobedecorated);
   t.is(tobedecorated, ctrlz.decorated);
   t.end();
 });
 
 tape('Ctrlz has his own specific token', (t) => {
-  let tobedecorated : Handler<number> = getIncrementHandler();
+  let tobedecorated : Handler<number, number> = getIncrementHandler();
   let ctrlz = new Ctrlz<number>(tobedecorated);
   t.ok(ctrlz.token === "ctrl-z");
   t.end();
 });
 
 tape('Ctrlz has a queue with a default lenght of 10', (t) => {
-  let tobedecorated : Handler<number> = getIncrementHandler();
+  let tobedecorated : Handler<number, number> = getIncrementHandler();
   let ctrlz = new Ctrlz<number>(tobedecorated);
   t.ok(ctrlz.queuesize === 10)
   t.end();
 });
 
 tape('Ctrlz stores events along with state', (t) => {
-  let msg : Message = {
+  let msg : Message<number> = {
     token: "sum",
-    payload: {}
+    payload: 0
   }
-  let tobedecorated : Handler<number> = getIncrementHandler();
+  let tobedecorated : Handler<number, number> = getIncrementHandler();
   let ctrlz = new Ctrlz<number>(tobedecorated);
   ctrlz.accept(msg, 0);
   t.ok(ctrlz.queue.length === 1);
@@ -37,11 +37,11 @@ tape('Ctrlz stores events along with state', (t) => {
 });
 
 tape('Ctrlz stores a finite number of events', (t) => {
-  let msg : Message = {
+  let msg : Message<number> = {
     token: "sum",
-    payload: {}
+    payload: 0
   }
-  let tobedecorated : Handler<number> = getIncrementHandler();
+  let tobedecorated : Handler<number, number> = getIncrementHandler();
   let ctrlz = new Ctrlz<number>(tobedecorated);
   ctrlz.queuesize = 5;
   ctrlz.accept(msg, 0).accept(msg).accept(msg).accept(msg).accept(msg).accept(msg);
@@ -50,11 +50,11 @@ tape('Ctrlz stores a finite number of events', (t) => {
 });
 
 tape('Ctrlz update state while he makes room for new events', (t) => {
-  let msg : Message = {
+  let msg : Message<number> = {
     token: "sum",
-    payload: {}
+    payload: 0
   }
-  let tobedecorated : Handler<number> = getIncrementHandler();
+  let tobedecorated : Handler<number, number> = getIncrementHandler();
   let ctrlz = new Ctrlz<number>(tobedecorated);
   ctrlz.queuesize = 5;
   ctrlz.accept(msg, 0).accept(msg).accept(msg).accept(msg).accept(msg).accept(msg);
@@ -63,11 +63,11 @@ tape('Ctrlz update state while he makes room for new events', (t) => {
 });
 
 tape('Ctrlz does not affect how decorated handler works', (t) => {
-  let msg : Message = {
+  let msg : Message<number> = {
     token: "sum",
-    payload: {}
+    payload: 0
   }
-  let tobedecorated : Handler<number> = getIncrementHandler();
+  let tobedecorated : Handler<number, number> = getIncrementHandler();
   let ctrlz = new Ctrlz<number>(tobedecorated);
   ctrlz.accept(msg, 0).accept(msg);
   t.ok(ctrlz.decorated.state === 2, "Ctrlz's decorated state should be 2, it is " + ctrlz.decorated.state);
@@ -76,29 +76,30 @@ tape('Ctrlz does not affect how decorated handler works', (t) => {
 
 tape('Properly configured handler can perform ctrl-z and get state back in time', (t) => {
   let mh = new MainHandler(0);
-  let msg: Message = {
+  let msg: Message<number> = {
     token: "add",
-    payload: {}
+    payload: 0
   };
-  let ctrlz: Message = {
+  let ctrlz: Message<string> = {
     token: "ctrl-z",
-    payload: {}
+    payload: ""
   };
-  mh.handlers.set("add", getIncrementHandler());
+  let addhandler : Handler<number, number> = getIncrementHandler();
+  mh.handlers.set("add", addhandler);
   let ctrlzHandler = new Ctrlz(mh);
   ctrlzHandler.accept(msg).accept(msg).accept(msg).accept(ctrlz).accept(ctrlz);
   t.ok(ctrlzHandler.decorated.state === 1, "state should be 1, should be " + ctrlzHandler.decorated.state);
   t.end();
 });
 
-function getIncrementHandler(): Handler<number> {
+function getIncrementHandler(): Handler<number, number> {
   return {
     token: "",
     state: 0,
-    accept(msg: Message, state: number) {
+    accept(msg: Message<number>, state: number) {
       this.state = JSON.parse(JSON.stringify(state !== undefined ? state : this.state));
       this.state++;
       return this;
     }
-  } as Handler<number>;
+  } as Handler<number, number>;
 }

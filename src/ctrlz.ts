@@ -1,20 +1,20 @@
 import { Handler, Message } from './handler';
 
-class Ctrlz<S> implements Handler<S> {
+class Ctrlz<S> implements Handler<S, any> {
   token: string;
   state: S;
   queuesize: number = 10;
-  queue: Message[];
-  decorated: Handler<S>;
+  queue: Message<any>[];
+  decorated: Handler<S, any>;
 
-  constructor(decorated: Handler<S>) {
+  constructor(decorated: Handler<S, any>) {
     this.token = "ctrl-z";
     this.decorated = decorated;
     this.state = JSON.parse(JSON.stringify(decorated.state));
     this.queue = [];
   }
 
-  accept(msg: Message, state?: S): Handler<S> {
+  accept(msg: Message<any>, state?: S): Handler<S, any> {
     if(msg.token === this.token) {
       this.decorated.state = JSON.parse(JSON.stringify(this.state));
       this.queue.pop();

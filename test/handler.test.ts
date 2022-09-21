@@ -16,10 +16,10 @@ tape('MainHandler is a monad', (t) => {
   let state : State = {
     sum: 0
   }
-  let mh = new MainHandler(state);
-  let msg: Message = {
+  let mh = new MainHandler<State>(state);
+  let msg: Message<number> = {
     token: "add",
-    payload: {}
+    payload: 0
   };
   mh.handlers.set("add", getAddToStateHandler());
   mh.accept(msg).accept(msg).accept(msg);
@@ -27,12 +27,12 @@ tape('MainHandler is a monad', (t) => {
   t.end();
 });
 
-function getAddToStateHandler(): Handler<State> {
+function getAddToStateHandler(): Handler<State, number> {
   return {
-    accept(msg: Message, state: State) {
+    accept(msg: Message<number>, state: State) {
       this.state = JSON.parse(JSON.stringify(state));
       this.state.sum++;
       return this;
     }
-  } as Handler<State>;
+  } as Handler<State, number>;
 }
