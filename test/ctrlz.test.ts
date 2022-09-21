@@ -92,6 +92,26 @@ tape('Properly configured handler can perform ctrl-z and get state back in time'
   t.end();
 });
 
+type ComplexState = {
+  sum: number;
+  log: string[];
+}
+
+tape('Ctrlz can handle complex use cases', (t) => {
+  let complexState : ComplexState = {
+    sum: 0,
+    log: []
+  };
+  let mainHandler = new MainHandler(complexState);
+  mainHandler.handlers.set("sum-to", getSumHandler());
+  mainHandler.handlers.set("log-this", getLogHandler());
+  let ctrlzH = new Ctrlz(mainHandler);
+  ctrlzH.queuesize = 3;
+  ctrlzH.accept({ token: "sum-to", payload: 5 }).accept({ token: "log-this", payload: "hello" }).accept({ token: "log-this", payload: "world" }).accept({ token: "sum-to", payload: 3 }).accept({ token: "ctrl-z", payload: {} });
+  t.ok(lodash.isEqual(ctrlzH.decorated.state, { sum: 5, log: ["hello", "world"]}));
+  t.end();
+});
+
 function getIncrementHandler(): Handler<number, number> {
   return {
     token: "",
@@ -102,4 +122,28 @@ function getIncrementHandler(): Handler<number, number> {
       return this;
     }
   } as Handler<number, number>;
+}
+
+function getSumHandler(): Handler<ComplexState, number> {
+  return {
+    token: "",
+    state: { sum: 0, log: [] },
+    accept(msg: Message<number>, state: ComplexState) {
+      this.state = JSON.parse(JSON.stringify(state !== undefined ? state : this.state));
+      this.state.sum = this.state.sum + msg.payload;
+      return this;
+    }
+  } as Handler<ComplexState, number>;
+}
+
+function getLogHandler(): Handler<ComplexState, string> {
+  return {
+    token: "",
+    state: { sum: 0, log: [] },
+    accept(msg: Message<string>, state: ComplexState) {
+      this.state = JSON.parse(JSON.stringify(state !== undefined ? state : this.state));
+      this.state.log.push(msg.payload);
+      return this;
+    }
+  } as Handler<ComplexState, string>;
 }
